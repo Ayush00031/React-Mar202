@@ -1,26 +1,49 @@
-// components/MessageInput.tsx
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext"; // Import AuthContext
 
 interface MessageInputProps {
   selectedUser: string;
+  onMessageSent?: () => void; // Optional callback after message sent
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ selectedUser }) => {
+const MessageInput: React.FC<MessageInputProps> = ({
+  selectedUser,
+  onMessageSent,
+}) => {
   const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const { token } = useAuth(); // Get token from AuthContext
 
   const sendMessage = async () => {
     if (!message.trim()) return;
 
     try {
-      await fetch("/api/messages", {
+      const response = await fetch("http://localhost:5000/api/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Include auth token
+        },
         body: JSON.stringify({ receiver: selectedUser, text: message }),
       });
 
-      setMessage(""); // Clear input after sending
-    } catch (error) {
-      console.error("Error sending message:", error);
+      if (!response.ok) {
+        throw new Error(`Failed to send message: ${response.statusText}`);
+      }
+
+      setMessage(""); // Clear input on success
+      setError(null); // Clear previous errors
+      onMessageSent?.(); // Call callback if provided
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send message");
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
     }
   };
 
@@ -32,6 +55,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ selectedUser }) => {
         placeholder="Type a message..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown} // Handle Enter key
+        aria-label="Message input"
       />
       <button
         onClick={sendMessage}
@@ -39,6 +64,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ selectedUser }) => {
       >
         Send
       </button>
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </div>
   );
 };

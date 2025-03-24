@@ -46,3 +46,17 @@ export async function loginUser(req, res) {
     res.status(500).json({ message: "Server error" });
   }
 }
+export const getContacts = async (req, res) => {
+  try {
+    // Fetch all users except the currently logged-in user
+    const contacts = await User.find(
+      { _id: { $ne: req.user._id } }, // Exclude logged-in user
+      "username email _id" // Only return specific fields
+    );
+
+    res.json(contacts);
+  } catch (error) {
+    console.error("Error fetching contacts:", error);
+    res.status(500).json({ message: "Failed to fetch contacts" });
+  }
+};

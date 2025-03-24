@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
     password: string;
   }) => {
     try {
-      const response = await fetch("/api/users/login", {
+      const response = await fetch("http://localhost:5000/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
 
       const data = await response.json();
       if (response.ok) {
-        login(data.user);
+        login(data.user, data.token);
         navigate("/chat");
       } else {
         alert(data.message || "Login failed!");

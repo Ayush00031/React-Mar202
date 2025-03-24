@@ -14,7 +14,7 @@ const SignupPage: React.FC = () => {
     password: string;
   }) => {
     try {
-      const response = await fetch("/api/users/signup", {
+      const response = await fetch("http://localhost:5000/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
@@ -22,7 +22,7 @@ const SignupPage: React.FC = () => {
 
       const data = await response.json();
       if (response.ok) {
-        login(data.user); // Log in the user after signup
+        login(data.user, data.token); // Log in the user after signup
         navigate("/chat");
       } else {
         alert(data.message || "Signup failed!");
